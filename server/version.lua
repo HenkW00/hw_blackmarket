@@ -1,7 +1,7 @@
 local curVersion = GetResourceMetadata(GetCurrentResourceName(), "version")
 local resourceName = "hw_blackmarket"
 
-if Crafting.checkForUpdates then
+if Config.checkForUpdates then
     CreateThread(function()
         if GetCurrentResourceName() ~= "hw_blackmarket" then
             resourceName = "hw_blackmarket (" .. GetCurrentResourceName() .. ")"
