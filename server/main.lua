@@ -1,39 +1,47 @@
 ESX = exports["es_extended"]:getSharedObject()
 
--- ESX = nil
+lib.locale()
 
--- TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+-- Main function for discord logging
+local function sendLog(playerIdentifier, message)
+    if Config.Webhook == "" then return end
+    
+    local embeds = {
+        {
+            title = "🛒 Blackmarket",
+            description = message,
+            type = "rich",
+            color = 0xFF0000,
+            footer = {
+                text = "HW Development | Logs"
+            },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }
+    }
 
-RegisterServerEvent('hw_blackmarket:purchaseItem')
-AddEventHandler('hw_blackmarket:purchaseItem', function(item, quantity, price)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if xPlayer.getMoney() >= price then
-        xPlayer.removeMoney(price)
-        xPlayer.addInventoryItem(item, quantity)
-        local message = string.format("Player: %s\nBought: %s\nQuantity: %d\nPrice: $%d", xPlayer.identifier, item, quantity, price)
-        SendDiscordLog(message)
+    PerformHttpRequest(Config.Webhook, function() end, 'POST', json.encode({username = "HW Scripts", embeds = embeds}), {['Content-Type'] = 'application/json'})
+end
+
+-- Main event to buy items
+RegisterServerEvent('hw_blackmarket:buyItem')
+AddEventHandler('hw_blackmarket:buyItem', function (itemName, itemPrice, quantity)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    local playerMoney = xPlayer.getMoney()
+    local totalPrice = itemPrice * quantity
+
+    Wait(20)
+
+    if playerMoney >= totalPrice then 
+        if xPlayer ~= nil then 
+            xPlayer.removeMoney(totalPrice)
+            xPlayer.addInventoryItem(itemName, quantity)
+            if Config.Debug then
+                print('^0[^1DEBUG^0] ^5Player ^3' .. src .. '^5 bought the following item(s) at the blackmarket ^3' .. quantity .. 'x ' .. itemName .. '^5 for ^3$' .. totalPrice .. "^5.")
+            end            
+            sendLog(src, string.format('Player **%s** bought **%s x%s** for $**%s** at the blackmarket', src, itemName, quantity, totalPrice))
+        end
     else
-        TriggerClientEvent('esx:showNotification', source, 'Not enough money')
+        TriggerClientEvent('ox_lib:notify', src, {type = 'error', description = locale('notify_desc')})
     end
 end)
-
-function SendDiscordLog(message)
-    local webhook = Config.DiscordWebhook
-    if webhook ~= "" then
-        local embeds = {
-            {
-                ["color"] = 3447003, -- Blue for general purchases
-                ["title"] = "**Black Market Purchase**",
-                ["description"] = message,
-                ["footer"] = {
-                    ["text"] = "HW BlackMarket | Transactions Log",
-                },
-                ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-            }
-        }
-
-        PerformHttpRequest(webhook, function(err, text, headers) end, 'POST', json.encode({embeds = embeds}), { ['Content-Type'] = 'application/json' })
-    else
-        print("Discord webhook URL is not configured.")
-    end
-end

@@ -1,21 +1,30 @@
 fx_version 'cerulean'
 game 'gta5'
+lua54 'yes'
 
 author 'HenkW'
-description 'Simple blackmarket script for ESX'
-version '1.0.3'
+description 'Advanced blackmarket script with ox_lib'
+version '1.0.5'
 
-server_scripts {
-    '@mysql-async/lib/MySQL.lua',
-    'server/main.lua',
-    'server/version.lua'
-}
-
-client_scripts {
-    'client/main.lua'
+dependencies {
+    'es_extended',
+    'ox_lib',
+    'ox_inventory'
 }
 
 shared_scripts {
+    '@ox_lib/init.lua',
     '@es_extended/imports.lua',
-    'config.lua' 
+    'config.lua',
+    '@es_extended/imports.lua',
 }
+
+client_scripts {
+    'client/main.lua',
+}
+
+server_scripts {
+    'server/main.lua',
+}
+
+file 'locales/*.json'

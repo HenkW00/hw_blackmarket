@@ -1,102 +1,148 @@
-ESX = exports["es_extended"]:getSharedObject()
+lib.locale()
 
--- ESX = nil
+-- Variables
+items = {}
+others = {}
 
--- Citizen.CreateThread(function()
---     while ESX == nil do
---         TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
---         Citizen.Wait(0)
---     end
--- end)
+-- Function to prompt the player for quantity input
+local function promptQuantity(callback)
+    local amount = nil
+    AddTextEntry("FMMC_KEY_TIP8", "Enter quantity:")
+    DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP8", "", "", "", "", "", 3)
 
-Citizen.CreateThread(function()
-        local pedInfo = Config.BlackMarketPed
-        RequestModel(GetHashKey(pedInfo.model))
-        while not HasModelLoaded(GetHashKey(pedInfo.model)) do
-            Wait(1)
-        end
+    while UpdateOnscreenKeyboard() ~= 1 and UpdateOnscreenKeyboard() ~= 2 do
+        Wait(20)
+    end
 
-        local ped = CreatePed(4, GetHashKey(pedInfo.model), pedInfo.coords.x, pedInfo.coords.y, pedInfo.coords.z, pedInfo.coords.w, false, true)
-        SetEntityHeading(ped, pedInfo.coords.w)
-        FreezeEntityPosition(ped, true)
-        SetEntityInvincible(ped, true)
-        SetBlockingOfNonTemporaryEvents(ped, true)
+    if UpdateOnscreenKeyboard() ~= 2 then
+        amount = GetOnscreenKeyboardResult()
+    end
 
-        if pedInfo.animation.dict and pedInfo.animation.name then
-            RequestAnimDict(pedInfo.animation.dict)
-            while not HasAnimDictLoaded(pedInfo.animation.dict) do
-                Wait(1)
-            end
-            TaskPlayAnim(ped, pedInfo.animation.dict, pedInfo.animation.name, 8.0, -8.0, -1, 1, 0, false, false, false)
-        end
+    callback(amount)
+end
 
-        while true do
-            Wait(0)
-            local playerCoords = GetEntityCoords(PlayerPedId())
-            local dist = #(playerCoords - vector3(pedInfo.coords.x, pedInfo.coords.y, pedInfo.coords.z))
-
-            if dist < 2.0 then
-                ESX.ShowHelpNotification('Press ~INPUT_CONTEXT~ to access the Black Market')
-                if IsControlJustReleased(0, 38) then -- E key
-                    OpenBlackMarketMenu()
+-- Function to create menu options for items with quantity selection
+local function createItemOption(label, price, callback)
+    return {
+        title = label,
+        icon = 'fa-solid fa-shopping-basket',
+        iconColor = '#0000FF',
+        description = locale('price'):format(price.."$"),
+        onSelect = function()
+            promptQuantity(function(quantity)
+                if quantity and tonumber(quantity) then
+                    callback(tonumber(quantity))
+                else
+                    TriggerEvent('chatMessage', '^1Error:^0 Invalid quantity.')
                 end
-            end
+            end)
         end
+    }
+end
+
+-- Main event for opening blackmarket menu
+RegisterNetEvent('hw_blackmarket:openbm', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bm',
+        title = locale('bm'),
+        options = {
+            {
+                title = locale('items'),
+                icon = 'tags',
+                description = locale('items_desc'),
+                event = 'hw_blackmarket:openbmitems',
+                arrow = 'true'
+            },
+            {
+                title = locale('others'),
+                icon = 'tags',
+                description = locale('others_desc'),
+                event = 'hw_blackmarket:openbmothers',
+                arrow = 'true'
+            }
+        }
+    })
+    lib.showContext('hw_blackmarket_bm')
 end)
 
-function OpenBlackMarketMenu()
-    ESX.UI.Menu.CloseAll()
+-- Main event for opening 'items' sections
+RegisterNetEvent('hw_blackmarket:openbmitems', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bmitems',
+        title = locale('items_title'),
+        menu = 'hw_blackmarket_bm',
+        options = items
+    })
+    lib.showContext('hw_blackmarket_bmitems')
+end)
 
-    local elements = {}
-    for _, categoryInfo in ipairs(Config.Categories) do
-        if Config.Items[categoryInfo.value] then -- Check if there are items for this category
-            table.insert(elements, {label = categoryInfo.label, value = categoryInfo.value})
-        end
-    end
+-- Main event for opening 'others' sections
+RegisterNetEvent('hw_blackmarket:openbmothers', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bmothers',
+        title = locale('others_title'),
+        menu = 'hw_blackmarket_bm',
+        options = others
+    })
+    lib.showContext('hw_blackmarket_bmothers')
+end)
 
-    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'black_market_categories', {
-        title    = 'Black Market',
-        align    = 'top-left',
-        elements = elements
-    }, function(data, menu)
-        menu.close()
-        OpenCategoryMenu(data.current.value)
-    end, function(data, menu)
-        menu.close()
-    end)
+-- Debug print for checking items from config file
+if Config.Debug then
+    print("^0[^1DEBUG^0] ^5Initialized items from config file")
+    print("^3", json.encode(Config.Items))
 end
 
-function OpenCategoryMenu(category)
-    local elements = {}
-    for _, item in ipairs(Config.Items[category]) do
-        table.insert(elements, {label = item.label .. ' - $' .. item.price, value = item.item, price = item.price})
-    end
-
-    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'black_market_items', {
-        title    = 'Black Market - ' .. category,
-        align    = 'top-left',
-        elements = elements
-    }, function(data, menu)
-        ESX.UI.Menu.Open('dialog', GetCurrentResourceName(), 'black_market_buy_quantity', {
-            title = 'Purchase Quantity'
-        }, function(data2, menu2)
-            local quantity = tonumber(data2.value)
-            if quantity and quantity > 0 then
-                TriggerServerEvent('hw_blackmarket:purchaseItem', data.current.value, quantity, data.current.price * quantity)
-                menu2.close()
-            else
-                ESX.ShowNotification('Invalid quantity')
-            end
-        end, function(data2, menu2)
-            menu2.close()
-        end)
-    end, function(data, menu)
-        menu.close()
-    end)
-end
-
-RegisterCommand('openblackmarket', function()
+-- Populate menu options for each item with quantity selection
+for k, v in pairs(Config.Items) do 
     if Config.Debug then
-    OpenBlackMarketMenu()
+        print("^0[^1DEBUG^0] ^5Checking 'items' from config:^3", v.label)
     end
-end, false)
+    table.insert(items, createItemOption(v.label, v.price, function(quantity)
+        Wait(20)
+        local itemName = v.item
+        local itemPrice = v.price
+        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
+    end))
+end
+
+for k, v in pairs(Config.Others) do 
+    if Config.Debug then
+        print("^0[^1DEBUG^0] ^5Checking 'others' from config:^3", v.label)
+    end
+    table.insert(others, createItemOption(v.label, v.price, function(quantity)
+        Wait(20)
+        local itemName = v.item
+        local itemPrice = v.price
+        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
+    end))
+end
+
+local BlackMarketPed = {
+    Ped = {
+        {hash = "u_m_m_jewelsec_01" , coords = Config.Location},
+    }
+}
+
+-- Main thread for spawning blackmarket ped and using it
+Citizen.CreateThread(function ()
+    for _, v in pairs(BlackMarketPed.Ped) do 
+        local hash = GetHashKey(v.hash)
+        while not HasModelLoaded(hash) do
+            RequestModel(hash)
+            Wait(20)
+        end
+        ped = CreatePed("hw_blackmarket", v.hash, v.coords, false, true)
+        exports.ox_target:addLocalEntity(ped, {
+            {
+                name = 'hw_blackmarket:targetbm',
+                event = 'hw_blackmarket:openbm',
+                icon = 'fa-solid fa-person-rifle',
+                label = locale('talk'),
+            }
+        })
+        SetBlockingOfNonTemporaryEvents(ped, true)
+        SetEntityInvincible(ped, true)
+        FreezeEntityPosition(ped, true)
+    end
+end)
