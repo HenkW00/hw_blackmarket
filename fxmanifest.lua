@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'HenkW'
 description 'Advanced blackmarket script with ox_lib'
-version '1.0.5'
+version '1.0.6'
 
 dependencies {
     'es_extended',
