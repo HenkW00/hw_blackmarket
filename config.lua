@@ -5,14 +5,9 @@ Config = {}
 ---------------------
 ---SCRIPT SETTINGS---
 ---------------------
-Config.Debug = true -- For debugging purposes (it will show both server and client output)
+Config.Debug = false -- For debugging purposes (it will show both server and client output)
 Config.checkForUpdates = true -- Recommended to leave as "true" for upcomming updates ;)
 Config.Logs = true -- Do you want to send discord logs for actions taken by players?
-
-------------------------------
-----EDITABLE TEXT SETTINGS----
-------------------------------
-Config.AmountText = 'Enter quantity:' -- Text you can change for the quantity UI
 
 ------------------
 ---PED SETTINGS---
@@ -50,6 +45,8 @@ Config.Others = {
 ---------------------------------
 ----BLACKMARKET SHOP SETTINGS----
 ---------------------------------
+Config.AmountText = 'Enter quantity:' -- Text you can change for the quantity UI
+Config.ShopName = '💲 Black Market 💲' -- Shop (title) name for the blackmarket
 Config.ShopItemIcon = 'fa-solid fa-shopping-basket' -- Icon for individual shop items
 Config.ShotItemColour = '#0000FF' -- Color for individual shop items
 Config.ShopCategoryIcon = 'tags' -- Icon for shop categories

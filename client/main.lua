@@ -44,7 +44,7 @@ end
 RegisterNetEvent('hw_blackmarket:openbm', function ()
     lib.registerContext({
         id = 'hw_blackmarket_bm',
-        title = locale('bm'),
+        title = Config.ShopName,
         options = {
             {
                 title = locale('items'),

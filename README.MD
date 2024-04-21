@@ -8,10 +8,10 @@ This is an advanced blackmarket script designed to enhance illegal trading RP. T
 - HW Development | HenkW
 
 **Changelog:**
-- Removed 'icon' from config.items/config.others since this is not in use.
-- Added Config.ShopItemIcon to config.lua for easy configuration.
-- Added Config.ShotItemColour to config.lua for easy configuration.
-- Added Config.ShopCategoryIcon to config.lua for easy configuration.
+- Added Config.ShopName to config.lua for easy configuration.
+- Removed some strings from locales.
+- Changed/moved some lines in fxmanifest.lua for cleaner look.
+- Changed/moved some lines config.lua for cleaner look.
  
 🛠 **Requirements**
 - ESX Server
@@ -26,7 +26,7 @@ This is an advanced blackmarket script designed to enhance illegal trading RP. T
 ✅ **Features**
 - Players can access the black market to purchase illegal items.
 - Server administrators can enable debug mode to receive detailed outputs.
-- Discord logging is available for better moderation (config.webhook).
+- Discord logging is available for better moderation.
 - Optimized performance for both client-side and server-side operations.
 - Enhanced readability and maintainability of the script code.
 - Supports the latest version of ESX.
@@ -47,4 +47,8 @@ Follow these steps to set up the black market script on your ESX server:
 
 4. **Start Your Server**: Restart or start your ESX server to load the `hw_blackmarket` resource.
 
-Enjoy the script! <3
+
+If help is needed, you can contact me via discord.
+Link for that you can find in console upon restarting the script, otherwise just search for HenkW00 on google/github/CFX
+
+Enjoy the script, i hope you like it! <3

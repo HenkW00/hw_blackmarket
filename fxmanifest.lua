@@ -4,12 +4,15 @@ lua54 'yes'
 
 author 'HenkW'
 description 'Advanced blackmarket script with ox_lib'
-version '1.0.8'
+version '1.0.9'
 
-dependencies {
-    'es_extended',
-    'ox_lib',
-    'ox_inventory'
+server_scripts {
+    'server/main.lua',
+    'server/version.lua',
+}
+
+client_scripts {
+    'client/main.lua',
 }
 
 shared_scripts {
@@ -19,13 +22,10 @@ shared_scripts {
     '@es_extended/imports.lua',
 }
 
-client_scripts {
-    'client/main.lua',
-}
-
-server_scripts {
-    'server/main.lua',
-    'server/version.lua',
+dependencies {
+    'es_extended',
+    'ox_lib',
+    'ox_inventory',
 }
 
 file 'locales/*.json'
