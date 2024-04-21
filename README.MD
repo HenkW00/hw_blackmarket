@@ -8,18 +8,10 @@ This is an advanced blackmarket script designed to enhance illegal trading RP. T
 - HW Development | HenkW
 
 **Changelog:**
-- Added Config.Ped to config.lua to for easy configuration.
-- Added Config.AmountText to config.lua for easy configuration.
-- Added Config.DiscordBotName to config.lua for easy configuration.
-- Added Config.DiscordLogTitle to config.lua for easy configuration.
-- Added Config.DiscordLogFooter to config.lua for easy configuration.
-- Added Config.DiscordLogColour to config.lua for easy configuration.
-- Added Config.DiscordEmbedStyle to config.lua for easy configuration.
-- Added Config.Logs so you can choose if you want to use discord logging.
-- Added Config.DebugLogs so you can choose if you want to log the debug prints to disord.
-- Changed the config.lua so its more readable.
-- Changed logging helper function.
-- Changed client-side handlers for ped configuration.
+- Removed 'icon' from config.items/config.others since this is not in use.
+- Added Config.ShopItemIcon to config.lua for easy configuration.
+- Added Config.ShotItemColour to config.lua for easy configuration.
+- Added Config.ShopCategoryIcon to config.lua for easy configuration.
  
 🛠 **Requirements**
 - ESX Server

@@ -25,8 +25,8 @@ end
 local function createItemOption(label, price, callback)
     return {
         title = label,
-        icon = 'fa-solid fa-shopping-basket',
-        iconColor = '#0000FF',
+        icon = Config.ShopItemIcon,
+        iconColor = Config.ShotItemColour,
         description = locale('price'):format(price.."$"),
         onSelect = function()
             promptQuantity(function(quantity)
@@ -48,14 +48,14 @@ RegisterNetEvent('hw_blackmarket:openbm', function ()
         options = {
             {
                 title = locale('items'),
-                icon = 'tags',
+                icon = Config.ShopCategoryIcon,
                 description = locale('items_desc'),
                 event = 'hw_blackmarket:openbmitems',
                 arrow = 'true'
             },
             {
                 title = locale('others'),
-                icon = 'tags',
+                icon = Config.ShopCategoryIcon,
                 description = locale('others_desc'),
                 event = 'hw_blackmarket:openbmothers',
                 arrow = 'true'
