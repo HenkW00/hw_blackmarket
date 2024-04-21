@@ -8,14 +8,19 @@ This is an advanced blackmarket script designed to enhance illegal trading RP. T
 - HW Development | HenkW
 
 **Changelog:**
-- Rewritten script for improved performance and readability.
-- Enhanced debug statements for easier troubleshooting (Config.Debug).
-- Implemented Discord logging for better moderation (config.webhook).
-- Optimized server-side operations.
-- Optimized client-side operations.
-- Added helper functions for improved functionality.
-- Simplified the condition for sending logs in the sendLog function.
-
+- Added Config.Ped to config.lua to for easy configuration.
+- Added Config.AmountText to config.lua for easy configuration.
+- Added Config.DiscordBotName to config.lua for easy configuration.
+- Added Config.DiscordLogTitle to config.lua for easy configuration.
+- Added Config.DiscordLogFooter to config.lua for easy configuration.
+- Added Config.DiscordLogColour to config.lua for easy configuration.
+- Added Config.DiscordEmbedStyle to config.lua for easy configuration.
+- Added Config.Logs so you can choose if you want to use discord logging.
+- Added Config.DebugLogs so you can choose if you want to log the debug prints to disord.
+- Changed the config.lua so its more readable.
+- Changed logging helper function.
+- Changed client-side handlers for ped configuration.
+ 
 🛠 **Requirements**
 - ESX Server
 - OX Lib

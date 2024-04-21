@@ -7,7 +7,7 @@ others = {}
 -- Function to prompt the player for quantity input
 local function promptQuantity(callback)
     local amount = nil
-    AddTextEntry("FMMC_KEY_TIP8", "Enter quantity:")
+    AddTextEntry("FMMC_KEY_TIP8", Config.AmountText)
     DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP8", "", "", "", "", "", 3)
 
     while UpdateOnscreenKeyboard() ~= 1 and UpdateOnscreenKeyboard() ~= 2 do
@@ -120,7 +120,7 @@ end
 
 local BlackMarketPed = {
     Ped = {
-        {hash = "u_m_m_jewelsec_01" , coords = Config.Location},
+        {hash = Config.Ped, coords = Config.Location},
     }
 }
 
