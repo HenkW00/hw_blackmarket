@@ -8,10 +8,8 @@ This is an advanced blackmarket script designed to enhance illegal trading RP. T
 - HW Development | HenkW
 
 **Changelog:**
-- Added Config.ShopName to config.lua for easy configuration.
-- Removed some strings from locales.
-- Changed/moved some lines in fxmanifest.lua for cleaner look.
-- Changed/moved some lines config.lua for cleaner look.
+- Fixed wrong config settting.
+
  
 🛠 **Requirements**
 - ESX Server

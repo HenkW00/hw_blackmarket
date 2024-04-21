@@ -48,7 +48,7 @@ Config.Others = {
 Config.AmountText = 'Enter quantity:' -- Text you can change for the quantity UI
 Config.ShopName = '💲 Black Market 💲' -- Shop (title) name for the blackmarket
 Config.ShopItemIcon = 'fa-solid fa-shopping-basket' -- Icon for individual shop items
-Config.ShotItemColour = '#0000FF' -- Color for individual shop items
+Config.ShopItemColour = '#0000FF' -- Color for individual shop items
 Config.ShopCategoryIcon = 'tags' -- Icon for shop categories
 
 ----------------------------

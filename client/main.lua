@@ -26,7 +26,7 @@ local function createItemOption(label, price, callback)
     return {
         title = label,
         icon = Config.ShopItemIcon,
-        iconColor = Config.ShotItemColour,
+        iconColor = Config.ShopItemColour,
         description = locale('price'):format(price.."$"),
         onSelect = function()
             promptQuantity(function(quantity)

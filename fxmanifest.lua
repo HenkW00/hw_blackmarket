@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'HenkW'
 description 'Advanced blackmarket script with ox_lib'
-version '1.0.9'
+version '1.1.0'
 
 server_scripts {
     'server/main.lua',
