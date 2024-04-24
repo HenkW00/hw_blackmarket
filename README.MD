@@ -8,7 +8,7 @@ This is an advanced blackmarket script designed to enhance illegal trading RP. T
 - HW Development | HenkW
 
 **Changelog:**
-- Fixed wrong config settting.
+- Changed amount input to lib
 
  
 🛠 **Requirements**

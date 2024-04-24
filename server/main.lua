@@ -1,50 +1,143 @@
-ESX = exports["es_extended"]:getSharedObject()
-
 lib.locale()
 
--- Main function for discord logging
-local function sendLog(playerIdentifier, message)
-    if Config.Logs and Config.Webhook ~= "" then
-    
-        local embeds = {
-            {
-                title = Config.DiscordLogTitle or "🛒 Blackmarket",
-                description = message,
-                type = Config.DiscordEmbedStyle or "rich",
-                color = Config.DiscordLogColour or 0xFF0000,
-                footer = {
-                    text = Config.DiscordLogFooter or "HW Development | Logs"
-                },
-                timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-            }
-        }
+-- Variables
+items = {}
+others = {}
 
-        PerformHttpRequest(Config.Webhook, function() end, 'POST', json.encode({username = Config.DiscordBotName or 'HW Development | Logs', embeds = embeds}), {['Content-Type'] = 'application/json'})
+-- Function to prompt the player for quantity input
+local function promptQuantity(callback)
+    local input = lib.inputDialog(Config.ShopName, {Config.AmountText})
+    local amount = tonumber(input[1])
+
+    if Config.Debug then
+    print(json.encode(input), amount)
     end
+
+    callback(amount)
 end
 
--- Main event to buy items
-RegisterServerEvent('hw_blackmarket:buyItem')
-AddEventHandler('hw_blackmarket:buyItem', function (itemName, itemPrice, quantity)
-    local src = source
-    local xPlayer = ESX.GetPlayerFromId(src)
-    local playerMoney = xPlayer.getMoney()
-    local totalPrice = itemPrice * quantity
-
-    Wait(20)
-
-    if playerMoney >= totalPrice then 
-        if xPlayer ~= nil then 
-            xPlayer.removeMoney(totalPrice)
-            xPlayer.addInventoryItem(itemName, quantity)
-            if Config.Debug then
-                print('^0[^1DEBUG^0] ^5Player ^3' .. src .. '^5 bought the following item(s) at the blackmarket ^3' .. quantity .. 'x ' .. itemName .. '^5 for ^3$' .. totalPrice .. "^5.")
-            end            
-            if Config.Logs then
-            sendLog(src, string.format('Player **%s** bought **%s x%s** for $**%s** at the blackmarket', src, itemName, quantity, totalPrice))
-            end
+-- Function to create menu options for items with quantity selection
+local function createItemOption(label, price, callback)
+    return {
+        title = label,
+        icon = Config.ShopItemIcon,
+        iconColor = Config.ShopItemColour,
+        description = locale('price'):format(price.."$"),
+        onSelect = function()
+            promptQuantity(function(quantity)
+                if quantity and tonumber(quantity) then
+                    callback(tonumber(quantity))
+                else
+                    TriggerEvent('chatMessage', '^1Error:^0 Invalid quantity.')
+                end
+            end)
         end
-    else
-        TriggerClientEvent('ox_lib:notify', src, {type = 'error', description = locale('notify_desc')})
+    }
+end
+
+-- Main event for opening blackmarket menu
+RegisterNetEvent('hw_blackmarket:openbm', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bm',
+        title = Config.ShopName,
+        options = {
+            {
+                title = locale('items'),
+                icon = Config.ShopCategoryIcon,
+                description = locale('items_desc'),
+                event = 'hw_blackmarket:openbmitems',
+                arrow = 'true'
+            },
+            {
+                title = locale('others'),
+                icon = Config.ShopCategoryIcon,
+                description = locale('others_desc'),
+                event = 'hw_blackmarket:openbmothers',
+                arrow = 'true'
+            }
+        }
+    })
+    lib.showContext('hw_blackmarket_bm')
+end)
+
+-- Main event for opening 'items' sections
+RegisterNetEvent('hw_blackmarket:openbmitems', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bmitems',
+        title = locale('items_title'),
+        menu = 'hw_blackmarket_bm',
+        options = items
+    })
+    lib.showContext('hw_blackmarket_bmitems')
+end)
+
+-- Main event for opening 'others' sections
+RegisterNetEvent('hw_blackmarket:openbmothers', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bmothers',
+        title = locale('others_title'),
+        menu = 'hw_blackmarket_bm',
+        options = others
+    })
+    lib.showContext('hw_blackmarket_bmothers')
+end)
+
+-- Debug print for checking items from config file
+if Config.Debug then
+    print("^0[^1DEBUG^0] ^5Initialized items from config file")
+    print("^3", json.encode(Config.Items))
+end
+
+-- Populate menu options for each item with quantity selection
+for k, v in pairs(Config.Items) do 
+    if Config.Debug then
+        print("^0[^1DEBUG^0] ^5Checking 'items' from config:^3", v.label)
+    end
+    table.insert(items, createItemOption(v.label, v.price, function(quantity)
+        Wait(20)
+        local itemName = v.item
+        local itemPrice = v.price
+        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
+    end))
+end
+
+for k, v in pairs(Config.Others) do 
+    if Config.Debug then
+        print("^0[^1DEBUG^0] ^5Checking 'others' from config:^3", v.label)
+    end
+    table.insert(others, createItemOption(v.label, v.price, function(quantity)
+        Wait(20)
+        local itemName = v.item
+        local itemPrice = v.price
+        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
+    end))
+end
+
+local BlackMarketPed = {
+    Ped = {
+        {hash = Config.Ped, coords = Config.Location},
+    }
+}
+
+-- Main thread for spawning blackmarket ped and using it
+Citizen.CreateThread(function ()
+    for _, v in pairs(BlackMarketPed.Ped) do 
+        local hash = GetHashKey(v.hash)
+        while not HasModelLoaded(hash) do
+            RequestModel(hash)
+            Wait(20)
+        end
+        ped = CreatePed("hw_blackmarket", v.hash, v.coords, false, true)
+        exports.ox_target:addLocalEntity(ped, {
+            {
+                name = 'hw_blackmarket:targetbm',
+                event = 'hw_blackmarket:openbm',
+                icon = 'fa-solid fa-person-rifle',
+                label = locale('talk'),
+            }
+        })
+        SetBlockingOfNonTemporaryEvents(ped, true)
+        SetEntityInvincible(ped, true)
+        FreezeEntityPosition(ped, true)
     end
 end)
