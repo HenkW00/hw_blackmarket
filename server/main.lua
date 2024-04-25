@@ -1,143 +1,89 @@
-lib.locale()
+ESX = exports["es_extended"]:getSharedObject()
 
--- Variables
-items = {}
-others = {}
-
--- Function to prompt the player for quantity input
-local function promptQuantity(callback)
-    local input = lib.inputDialog(Config.ShopName, {Config.AmountText})
-    local amount = tonumber(input[1])
-
-    if Config.Debug then
-    print(json.encode(input), amount)
-    end
-
-    callback(amount)
+-- Utility function to trim strings
+local function trim(s)
+    return s and s:match("^%s*(.-)%s*$") or ''
 end
 
--- Function to create menu options for items with quantity selection
-local function createItemOption(label, price, callback)
-    return {
-        title = label,
-        icon = Config.ShopItemIcon,
-        iconColor = Config.ShopItemColour,
-        description = locale('price'):format(price.."$"),
-        onSelect = function()
-            promptQuantity(function(quantity)
-                if quantity and tonumber(quantity) then
-                    callback(tonumber(quantity))
+-- Function to check if a value is in a table (list)
+local function contains(table, val)
+    for index, value in ipairs(table) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
+-- Check vehicle ownership based on license plate
+RegisterServerEvent("hw_licenseplate:Check")
+AddEventHandler("hw_licenseplate:Check", function(plate)
+    local _source = source 
+    print("Checking vehicle ownership. Plate: " .. tostring(plate))
+
+    if not plate or plate == '' then
+        print("Plate is nil. Check aborted.")
+        TriggerClientEvent("hw_licenseplate:Result", _source, false)
+        return
+    end
+
+    MySQL.Async.fetchScalar("SELECT COUNT(*) FROM owned_vehicles WHERE plate = @plate", {
+        ["@plate"] = trim(plate)
+    }, function(result)
+        TriggerClientEvent("hw_licenseplate:Result", _source, result and tonumber(result) > 0)
+    end)
+end)
+
+-- Function to check if the plate contains blacklisted words
+function isPlateBlacklisted(plate, blacklistedWords)
+    plate = plate:lower()
+    for _, word in ipairs(blacklistedWords) do
+        if plate:find(word:lower(), 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Register usable item
+ESX.RegisterUsableItem('license_plate', function(playerId)
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+    TriggerClientEvent('hw_licenseplate:useLicensePlate', playerId)
+end)
+
+-- Main event to change the license plate
+RegisterServerEvent("hw_licenseplate:ChangePlate")
+AddEventHandler("hw_licenseplate:ChangePlate", function(oldPlate, newPlate)
+    local playerId = source
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+
+    oldPlate = trim(oldPlate):upper()
+    newPlate = trim(newPlate):upper()
+
+    if #newPlate > 8 or isPlateBlacklisted(newPlate, Config.BlacklistedWords) then
+        TriggerClientEvent('okokNotify:Alert', playerId, "SYSTEM", "Invalid or blacklisted new plate.", 5000, 'error')
+        return
+    end
+
+    MySQL.Async.fetchScalar("SELECT COUNT(*) FROM owned_vehicles WHERE plate = @newPlate", {
+        ["@newPlate"] = newPlate
+    }, function(count)
+        if count > 0 then
+            TriggerClientEvent('okokNotify:Alert', playerId, "SYSTEM", "New plate already in use.", 5000, 'error')
+        else
+            MySQL.Async.execute("UPDATE owned_vehicles SET plate = @newPlate WHERE plate = @oldPlate AND owner = @owner", {
+                ["@newPlate"] = newPlate,
+                ["@owner"] = xPlayer.identifier,
+                ["@oldPlate"] = oldPlate
+            }, function(rowsChanged)
+                if rowsChanged > 0 then
+                    xPlayer.removeInventoryItem('license_plate', 1)
+                    TriggerClientEvent('okokNotify:Alert', playerId, "SYSTEM", "Plate changed successfully.", 5000, 'success')
+                    TriggerClientEvent('hw_licenseplate:UpdatePlateClient', playerId, newPlate)
                 else
-                    TriggerEvent('chatMessage', '^1Error:^0 Invalid quantity.')
+                    TriggerClientEvent('okokNotify:Alert', playerId, "SYSTEM", "Plate change failed. Verify the current plate and ownership.", 5000, 'error')
                 end
             end)
         end
-    }
-end
-
--- Main event for opening blackmarket menu
-RegisterNetEvent('hw_blackmarket:openbm', function ()
-    lib.registerContext({
-        id = 'hw_blackmarket_bm',
-        title = Config.ShopName,
-        options = {
-            {
-                title = locale('items'),
-                icon = Config.ShopCategoryIcon,
-                description = locale('items_desc'),
-                event = 'hw_blackmarket:openbmitems',
-                arrow = 'true'
-            },
-            {
-                title = locale('others'),
-                icon = Config.ShopCategoryIcon,
-                description = locale('others_desc'),
-                event = 'hw_blackmarket:openbmothers',
-                arrow = 'true'
-            }
-        }
-    })
-    lib.showContext('hw_blackmarket_bm')
-end)
-
--- Main event for opening 'items' sections
-RegisterNetEvent('hw_blackmarket:openbmitems', function ()
-    lib.registerContext({
-        id = 'hw_blackmarket_bmitems',
-        title = locale('items_title'),
-        menu = 'hw_blackmarket_bm',
-        options = items
-    })
-    lib.showContext('hw_blackmarket_bmitems')
-end)
-
--- Main event for opening 'others' sections
-RegisterNetEvent('hw_blackmarket:openbmothers', function ()
-    lib.registerContext({
-        id = 'hw_blackmarket_bmothers',
-        title = locale('others_title'),
-        menu = 'hw_blackmarket_bm',
-        options = others
-    })
-    lib.showContext('hw_blackmarket_bmothers')
-end)
-
--- Debug print for checking items from config file
-if Config.Debug then
-    print("^0[^1DEBUG^0] ^5Initialized items from config file")
-    print("^3", json.encode(Config.Items))
-end
-
--- Populate menu options for each item with quantity selection
-for k, v in pairs(Config.Items) do 
-    if Config.Debug then
-        print("^0[^1DEBUG^0] ^5Checking 'items' from config:^3", v.label)
-    end
-    table.insert(items, createItemOption(v.label, v.price, function(quantity)
-        Wait(20)
-        local itemName = v.item
-        local itemPrice = v.price
-        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
-    end))
-end
-
-for k, v in pairs(Config.Others) do 
-    if Config.Debug then
-        print("^0[^1DEBUG^0] ^5Checking 'others' from config:^3", v.label)
-    end
-    table.insert(others, createItemOption(v.label, v.price, function(quantity)
-        Wait(20)
-        local itemName = v.item
-        local itemPrice = v.price
-        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
-    end))
-end
-
-local BlackMarketPed = {
-    Ped = {
-        {hash = Config.Ped, coords = Config.Location},
-    }
-}
-
--- Main thread for spawning blackmarket ped and using it
-Citizen.CreateThread(function ()
-    for _, v in pairs(BlackMarketPed.Ped) do 
-        local hash = GetHashKey(v.hash)
-        while not HasModelLoaded(hash) do
-            RequestModel(hash)
-            Wait(20)
-        end
-        ped = CreatePed("hw_blackmarket", v.hash, v.coords, false, true)
-        exports.ox_target:addLocalEntity(ped, {
-            {
-                name = 'hw_blackmarket:targetbm',
-                event = 'hw_blackmarket:openbm',
-                icon = 'fa-solid fa-person-rifle',
-                label = locale('talk'),
-            }
-        })
-        SetBlockingOfNonTemporaryEvents(ped, true)
-        SetEntityInvincible(ped, true)
-        FreezeEntityPosition(ped, true)
-    end
+    end)
 end)

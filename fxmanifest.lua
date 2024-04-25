@@ -1,31 +1,22 @@
-fx_version 'cerulean'
+fx_version 'adamant'
 game 'gta5'
-lua54 'yes'
 
 author 'HenkW'
-description 'Advanced blackmarket script with ox_lib'
-version '1.1.2'
-
-server_scripts {
-    'server/main.lua',
-    'server/version.lua',
-}
+description 'ESX Vehicle license plate script using okokNotify'
+version '1.0.6'
 
 client_scripts {
-    'client/main.lua',
+	'client/main.lua'
+}
+
+server_scripts {
+	'@mysql-async/lib/MySQL.lua',
+	'server/main.lua',
+	'server/version.lua'
 }
 
 shared_scripts {
-    '@ox_lib/init.lua',
-    '@es_extended/imports.lua',
-    'config.lua',
-    '@es_extended/imports.lua',
+	'config.lua'
 }
 
-dependencies {
-    'es_extended',
-    'ox_lib',
-    'ox_inventory',
-}
-
-file 'locales/*.json'
+shared_script '@es_extended/imports.lua'
