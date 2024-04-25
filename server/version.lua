@@ -1,16 +1,16 @@
 local curVersion = GetResourceMetadata(GetCurrentResourceName(), "version")
-local resourceName = "hw_licenseplate"
+local resourceName = "hw_blackmarket"
 
 if Config.checkForUpdates then
     CreateThread(function()
-        if GetCurrentResourceName() ~= "hw_licenseplate" then
-            resourceName = "hw_licenseplate (" .. GetCurrentResourceName() .. ")"
+        if GetCurrentResourceName() ~= "hw_blackmarket" then
+            resourceName = "hw_blackmarket (" .. GetCurrentResourceName() .. ")"
         end
     end)
 
     CreateThread(function()
         while true do
-            PerformHttpRequest("https://api.github.com/repos/HenkW00/hw_licenseplate/releases/latest", CheckVersion, "GET")
+            PerformHttpRequest("https://api.github.com/repos/HenkW00/hw_blackmarket/releases/latest", CheckVersion, "GET")
             Wait(3500000)
         end
     end)
@@ -37,7 +37,7 @@ if Config.checkForUpdates then
     GetRepoInformations = function()
         local repoVersion, repoURL, repoBody = nil, nil, nil
 
-        PerformHttpRequest("https://api.github.com/repos/HenkW00/hw_licenseplate/releases/latest", function(err, response, headers)
+        PerformHttpRequest("https://api.github.com/repos/HenkW00/hw_blackmarket/releases/latest", function(err, response, headers)
             if err == 200 then
                 local data = json.decode(response)
 
@@ -46,7 +46,7 @@ if Config.checkForUpdates then
                 repoBody = data.body
             else
                 repoVersion = curVersion
-                repoURL = "https://github.com/HenkW00/hw_licenseplate"
+                repoURL = "https://github.com/HenkW00/hw_blackmarket"
                 print('^0[^3WARNING^0] Could ^1NOT^0 verify latest version from ^5github^0!')
             end
         end, "GET")

@@ -1,86 +1,143 @@
-ESX = exports["es_extended"]:getSharedObject()
+lib.locale()
 
--- Use License Plate Item
-RegisterNetEvent('hw_licenseplate:useLicensePlate')
-AddEventHandler('hw_licenseplate:useLicensePlate', function()
-    local playerPed = PlayerPedId()
-    local vehicle = GetVehiclePedIsIn(playerPed, false)
+-- Variables
+items = {}
+others = {}
 
-    if vehicle ~= 0 then
-        DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP8", "", "", "", "", "", 8)
-        while UpdateOnscreenKeyboard() == 0 do
-            DisableAllControlActions(0)
-            Wait(0)
-        end
-        local result = GetOnscreenKeyboardResult()
-        if result then
-            TriggerServerEvent('hw_licenseplate:ChangePlate', GetVehicleNumberPlateText(vehicle), result)
-            if Config.Debug then
-                print("^0[^1DEBUG^0] ^5Player: ^3" .. playerPed .. "^5 changed license plate to: ^3" ..result)
-            end
-        end
-    else
-        exports['okokNotify']:Alert("SYSTEM", "You are not in a vehicle.", 5000, 'error')
-        if Config.Debug then
-            print("^0[^1DEBUG^0] ^5Player: ^3" .. playerPed .. "^5 tried to change license plate but isnt in a vehicle^0")
-        end
+-- Function to prompt the player for quantity input
+local function promptQuantity(callback)
+    local input = lib.inputDialog(Config.ShopName, {Config.AmountText})
+    local amount = tonumber(input[1])
+
+    if Config.Debug then
+    print(json.encode(input), amount)
     end
-end)
 
--- Custom Command for Testing (if needed)
-RegisterCommand("kenteken", function(source, args, rawCommand)
-    if Config.Test then
-        local playerPed = PlayerPedId()
-        local vehicle = GetVehiclePedIsIn(playerPed, false)
+    callback(amount)
+end
 
-        if vehicle ~= 0 then
-            local oldPlate = GetVehicleNumberPlateText(vehicle)
-            if #args > 0 then
-                local newPlate = table.concat(args, " ")
-                TriggerServerEvent("hw_licenseplate:ChangePlate", oldPlate, newPlate)
-                if Config.Debug then
-                    print("^0[^1DEBUG^0] Player: ^3" .. playerPed .. "^5 changed old license plate: ^3" .. oldPlate .. "^5to new license plate: ^3" ..newPlate)
+-- Function to create menu options for items with quantity selection
+local function createItemOption(label, price, callback)
+    return {
+        title = label,
+        icon = Config.ShopItemIcon,
+        iconColor = Config.ShopItemColour,
+        description = locale('price'):format(price.."$"),
+        onSelect = function()
+            promptQuantity(function(quantity)
+                if quantity and tonumber(quantity) then
+                    callback(tonumber(quantity))
+                else
+                    TriggerEvent('chatMessage', '^1Error:^0 Invalid quantity.')
                 end
-            else
-                exports['okokNotify']:Alert("SYSTEM", "Usage: /kenteken [NEW_PLATE]", 5000, 'error')
-            end
-        else
-            exports['okokNotify']:Alert("SYSTEM", "You are not in a vehicle.", 5000, 'error')
-            if Config.Debug then
-                print("^0[^1DEBUG^0] ^5Player: ^3" .. playerPed .. "^5 is ^1NOT ^5in a vehicle!^0")
-            end
+            end)
         end
-    else
-        exports['okokNotify']:Alert("SYSTEM", "Test Mode is disabled", 5000, 'error')
-        if Config.Debug then
-            print("^0[^1DEBUG^0] ^3Test mode ^5is not active. You can change this in config")
-        end
-    end
-end, false)
+    }
+end
 
--- Handle License Plate Change Result
-RegisterNetEvent("hw_licenseplate:Result")
-AddEventHandler("hw_licenseplate:Result", function(ownsVehicle)
-    if ownsVehicle then
-        exports['okokNotify']:Alert("SYSTEM", "You own the vehicle.", 5000, 'info')
-    else
-        exports['okokNotify']:Alert("SYSTEM", "You do not own this vehicle.", 5000, 'error')
-    end
+-- Main event for opening blackmarket menu
+RegisterNetEvent('hw_blackmarket:openbm', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bm',
+        title = Config.ShopName,
+        options = {
+            {
+                title = locale('items'),
+                icon = Config.ShopCategoryIcon,
+                description = locale('items_desc'),
+                event = 'hw_blackmarket:openbmitems',
+                arrow = 'true'
+            },
+            {
+                title = locale('others'),
+                icon = Config.ShopCategoryIcon,
+                description = locale('others_desc'),
+                event = 'hw_blackmarket:openbmothers',
+                arrow = 'true'
+            }
+        }
+    })
+    lib.showContext('hw_blackmarket_bm')
 end)
 
--- Update Vehicle License Plate Visually
-RegisterNetEvent('hw_licenseplate:UpdatePlateClient')
-AddEventHandler('hw_licenseplate:UpdatePlateClient', function(newPlate)
-    local playerPed = PlayerPedId()
-    local vehicle = GetVehiclePedIsIn(playerPed, false)
-    
-    if vehicle ~= 0 then
-        SetVehicleNumberPlateText(vehicle, newPlate)
-        exports['okokNotify']:Alert("Vehicle", "Plate updated to: " .. newPlate, 5000, 'success')
-        if Config.Debug then
-            print("^0[^1DEBUG^0] ^5Vehicle: ^3" .. vehicle .. "^5 got a new license plate: ^3" ..newPlate)
+-- Main event for opening 'items' sections
+RegisterNetEvent('hw_blackmarket:openbmitems', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bmitems',
+        title = locale('items_title'),
+        menu = 'hw_blackmarket_bm',
+        options = items
+    })
+    lib.showContext('hw_blackmarket_bmitems')
+end)
+
+-- Main event for opening 'others' sections
+RegisterNetEvent('hw_blackmarket:openbmothers', function ()
+    lib.registerContext({
+        id = 'hw_blackmarket_bmothers',
+        title = locale('others_title'),
+        menu = 'hw_blackmarket_bm',
+        options = others
+    })
+    lib.showContext('hw_blackmarket_bmothers')
+end)
+
+-- Debug print for checking items from config file
+if Config.Debug then
+    print("^0[^1DEBUG^0] ^5Initialized items from config file")
+    print("^3", json.encode(Config.Items))
+end
+
+-- Populate menu options for each item with quantity selection
+for k, v in pairs(Config.Items) do 
+    if Config.Debug then
+        print("^0[^1DEBUG^0] ^5Checking 'items' from config:^3", v.label)
+    end
+    table.insert(items, createItemOption(v.label, v.price, function(quantity)
+        Wait(20)
+        local itemName = v.item
+        local itemPrice = v.price
+        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
+    end))
+end
+
+for k, v in pairs(Config.Others) do 
+    if Config.Debug then
+        print("^0[^1DEBUG^0] ^5Checking 'others' from config:^3", v.label)
+    end
+    table.insert(others, createItemOption(v.label, v.price, function(quantity)
+        Wait(20)
+        local itemName = v.item
+        local itemPrice = v.price
+        TriggerServerEvent('hw_blackmarket:buyItem', itemName, itemPrice, quantity)
+    end))
+end
+
+local BlackMarketPed = {
+    Ped = {
+        {hash = Config.Ped, coords = Config.Location},
+    }
+}
+
+-- Main thread for spawning blackmarket ped and using it
+Citizen.CreateThread(function ()
+    for _, v in pairs(BlackMarketPed.Ped) do 
+        local hash = GetHashKey(v.hash)
+        while not HasModelLoaded(hash) do
+            RequestModel(hash)
+            Wait(20)
         end
-    else
-        exports['okokNotify']:Alert("Vehicle", "You are not in a vehicle.", 5000, 'error')
+        ped = CreatePed("hw_blackmarket", v.hash, v.coords, false, true)
+        exports.ox_target:addLocalEntity(ped, {
+            {
+                name = 'hw_blackmarket:targetbm',
+                event = 'hw_blackmarket:openbm',
+                icon = 'fa-solid fa-person-rifle',
+                label = locale('talk'),
+            }
+        })
+        SetBlockingOfNonTemporaryEvents(ped, true)
+        SetEntityInvincible(ped, true)
+        FreezeEntityPosition(ped, true)
     end
 end)

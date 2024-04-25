@@ -1,39 +1,52 @@
-# HW Scripts | Licenseplate Changer
+# HW Scripts - Black Market (Rewritten)
 
-## Introduction
-This script provides a vehicle license plate system for FiveM servers. Players can change the license plate of their owned vehicles using in-game items or commands.
+**Description**
 
-## :white_check_mark: Features
-- Players can change the license plate of their owned vehicles.
-- Supports blacklisting certain words from being used in license plates.
-- Includes a debug mode for testing purposes.
-- Provides visual notifications for various actions.
+This is an advanced blackmarket script designed to enhance illegal trading RP. The script has been rewritten by HW Development for compatibility with the latest ESX updates.
 
-## :tools: Installation
-1. Ensure you have [es_extended](https://github.com/ESX-Org/es_extended) installed and properly configured on your server.
-2. Copy the `hw_licenseplate` folder into your server's `resources` directory.
-3. Import the SQL file `hw_licenseplate.sql` into your database.
-4. Add `ensure hw_licenseplate` to your `server.cfg` file.
+**Author**
+- HW Development | HenkW
 
-## :globe_with_meridians: Dependencies
-- [MySQL](https://github.com/brtknr/mysql-async)
-- [es_extended](https://github.com/ESX-Org/es_extended)
-- [okokNotify](https://forum.cfx.re/t/okoknotify-standalone-paid/3907758)
+**Changelog:**
+- Fixed wrong config settting.
 
-## :white_check_mark: Usage
-### In-Game Commands
-- `/kenteken [NEW_PLATE]`: Change the license plate of the vehicle you're currently in. (Requires test mode enabled)
+ 
+🛠 **Requirements**
+- ESX Server
+- OX Lib
+- OX Inventory
 
-### In-Game Items
-- `license_plate`: Use this item to change the license plate of a vehicle.
+🌐 **Requirements Download links**
+- es_extended: [https://github.com/esx-framework/esx_core]
+- ox_lib: [https://github.com/overextended/ox_lib]
+- ox_inventory: [https://github.com/overextended/ox_inventory]
 
-## Configuration
-The configuration options can be found in `config.lua`:
+✅ **Features**
+- Players can access the black market to purchase illegal items.
+- Server administrators can enable debug mode to receive detailed outputs.
+- Discord logging is available for better moderation.
+- Optimized performance for both client-side and server-side operations.
+- Enhanced readability and maintainability of the script code.
+- Supports the latest version of ESX.
 
-- `Debug`: Enable or disable debug mode for logging.
-- `Test`: Enable or disable test mode for using the `/kenteken` command.
+🔧 **Download & Installation**
+
+Follow these steps to set up the black market script on your ESX server:
+
+1. **Download the Files**: Download the script files from the provided source.
+
+2. **Copy to Server Resource Directory**: Place the `hw_blackmarket` folder in the server resource directory.
+
+3. **Update `server.cfg`**: Add the following line to your `server.cfg` file:
+
+    ```cfg
+    start hw_blackmarket
+    ```
+
+4. **Start Your Server**: Restart or start your ESX server to load the `hw_blackmarket` resource.
+
 
 If help is needed, you can contact me via discord.
 Link for that you can find in console upon restarting the script, otherwise just search for HenkW00 on google/github/CFX
 
-Enjoy the script, i hope you like it! :heart:
+Enjoy the script, i hope you like it! <3

@@ -1,0 +1,14 @@
+{
+    "items": "Items",
+    "items_title": "🛒 Items 🛒",
+    "items_desc": "Buy your items here",
+
+    "others": "Others",
+    "others_title": "🧿 Others 🧿",
+    "others_desc": "Buy your others things here",
+
+    "price": "Price: %s",
+    "talk": "Talk",
+
+    "notify_desc": "You don't have enough money !"
+}
